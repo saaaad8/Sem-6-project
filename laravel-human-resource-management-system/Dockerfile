@@ -8,14 +8,28 @@ RUN apt-get update && apt-get install -y \
     zip unzip \
  && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
+# Install Composer 
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+#install Node.js v18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# Set working directory
 WORKDIR /var/www/html
 
 # Copy your project files to the container
 COPY . /var/www/html
 
-# Install Composer if needed
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install composer dependencies
+RUN composer update && composer install
 
-EXPOSE 8000
+# Install npm dependencies
+RUN npm install && npm run dev
 
+#Copy entrypoint.sh
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Expose port 8000 and start application
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
