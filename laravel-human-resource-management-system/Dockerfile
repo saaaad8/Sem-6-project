@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y \
 # Install Composer 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-#install Node.js v18
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
+# #install Node.js v18
+# RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+#     apt-get install -y nodejs
 
 # Set working directory
 WORKDIR /var/www/html
@@ -24,8 +24,8 @@ COPY . /var/www/html
 # Install composer dependencies
 RUN composer update && composer install
 
-# Install npm dependencies
-RUN npm install && npm run dev
+# # Install npm dependencies
+# RUN npm install && npm run dev
 
 #Copy entrypoint.sh
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
