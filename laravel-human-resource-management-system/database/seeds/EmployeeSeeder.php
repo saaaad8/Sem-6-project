@@ -16,7 +16,7 @@ class EmployeeSeeder extends Seeder
             'code' => 'HR0001',
             'status' => '1',
             'name' => 'HR Manager',
-            'gender' => '1',
+            'gender' => '2',
             'date_of_birth' => '',
             'date_of_joining' => '',
             'number' => '9999999999',

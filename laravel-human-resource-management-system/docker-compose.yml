@@ -1,13 +1,13 @@
 services:
   app:
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile
     container_name: laravel_app
     ports:
       - "8000:8000"
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html`
     depends_on:
       - db
     environment:
@@ -28,10 +28,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: hr_db
-      MYSQL_USER: hr
-      MYSQL_PASSWORD: root123
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Root@123
     volumes:
       - dbdata:/var/lib/mysql
 
 volumes:
   dbdata:
+  
