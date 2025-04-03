@@ -1,80 +1,35 @@
-FROM php:7.3-alpine AS builder
+FROM php:7.3-cli
 
-# Install build dependencies and PHP extensions
-RUN apk add --no-cache --virtual .build-deps \
-    $PHPIZE_DEPS \
+# Install dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
     libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
+    libonig-dev \
     libxml2-dev \
-    zip \
-    unzip \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring exif pcntl bcmath gd \
-    && apk del --no-cache .build-deps
+    zip unzip \
+ && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Install runtime dependencies needed for extensions
-RUN apk add --no-cache \
-    libpng \
-    libjpeg-turbo \
-    freetype \
-    oniguruma \
-    libxml2
-
-# Install Composer
+# Install Composer 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy the entire application to have proper file structure for Composer
-COPY . .
-
-# Create required directories explicitly
-RUN mkdir -p database/seeds database/factories app/Models
-
-# Install production dependencies with --ignore-platform-reqs to bypass potential issues
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress --no-interaction --ignore-platform-reqs
-
-# Final stage
-FROM php:7.3-alpine
-
-# Install runtime dependencies
-RUN apk add --no-cache \
-    libpng \
-    libjpeg-turbo \
-    freetype \
-    oniguruma \
-    libxml2
-
-# Install required PHP extensions in the final image
-RUN apk add --no-cache --virtual .build-deps \
-    $PHPIZE_DEPS \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring exif pcntl bcmath gd \
-    && apk del --no-cache .build-deps
+# #install Node.js v18
+# RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+#     apt-get install -y nodejs
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy the entire application from the builder stage
-COPY --from=builder /var/www/html /var/www/html
+# Copy your project files to the container
+COPY . /var/www/html
 
-# Create required directories if they don't exist in the codebase
-RUN mkdir -p database/seeds database/factories app/Models
+# Install composer dependencies
+RUN composer update && composer install
 
-# Set proper permissions
-RUN chmod -R 777 storage bootstrap/cache
+# # Install npm dependencies
+# RUN npm install && npm run dev
 
-# Copy entrypoint and set permissions
+#Copy entrypoint.sh
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 8000
+# Expose port 8000 and start application
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
