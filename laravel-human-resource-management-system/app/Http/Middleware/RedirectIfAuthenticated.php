@@ -18,11 +18,10 @@ class RedirectIfAuthenticated
     public function handle($request, Closure $next, $guard = null)
     {
         if (Auth::guard($guard)->check()) {
+            // Use optional() to safely access role_id even if the role relationship is null.
+            $userRole = optional(Auth::user()->role)->role_id;
 
-            $userRole= \Auth::user()->role->role_id;
-
-            if($userRole == '8')
-            {
+            if ($userRole == '8') {
                 return redirect('/check');
             }
 
